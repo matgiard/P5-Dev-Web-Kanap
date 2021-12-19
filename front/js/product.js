@@ -20,6 +20,7 @@ async function getOneProduct() {
 //   }
 
 function convertProductToHtml(product) {
+    document.querySelector('title').innerHTML=`${product.name}`;
     document.querySelector('.item__img').innerHTML=`<img src="${product.imageUrl}" alt="${product.altTxt}">`;
     document.querySelector('#title').innerHTML=`<h1 id="title">${product.name}</h1>`;
     document.querySelector('#price').innerHTML=`<span id="price">${product.price}</span>`;
