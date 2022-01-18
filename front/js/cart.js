@@ -1,12 +1,10 @@
-let productsInLocaStorage = JSON.parse(localStorage.getItem('products'));
-
 // 1 - récuperer le panier via localStorage
 // 2 - récuperer tous les produits pour savoir quoi insérer ?
 // 3 - coupler les 2 pour la description et l'img
 // 4 - associer 2 et 3
 // 5 - display le tout
 
-function getOneProduct(productId) {
+async function getOneProduct(productId) {
     // Call vers mon serveur 
     return fetch(`http://localhost:3000/api/products/${productId}`)
         .then(function (response) { return response.json(); })
@@ -39,33 +37,55 @@ function renderProductToHtml(productInLocalStorage, product) {
         </article>;`
 }
 
-async function displayProducts() {
-    for (const productInLocalStorage of productsInLocaStorage) {
-        const product = await getOneProduct(productInLocalStorage._id);
-        renderProductToHtml(productInLocalStorage, product);
-    }
-}
-
-displayProducts();
-
-// Supprimer un produit du panier
-
 function suppr(deleteItem) {
     deleteItem.addEventListener("click", (e) => {
         e.preventDefault();
-        alert('bla bla');
-        const cartItem = deleteItem.closest('#cart__items');
+        alert('bla bla bla');
+        const cartItem = deleteItem.closest('.cart__item');
         const id = cartItem.dataset.id;
         const color = cartItem.dataset.color; 
         // 1 - recup le localstorage
 	    const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
         // 2 - je cherche l'index de l'element dans mon localstorage (findIndex) => const index = productsInLocalStorage.findIndex()
 	    const index = productsInLocalStorage.findIndex(function (p) {
-            return p.id === id && p.color === color
+            return p._id === id && p.color === color
         });
+        console.log(index, id, color, cartItem);
         // 3 - stocker le retour de findIndex, si findIndex different de -1 je splice le localstorage recupéré
 	    if (index !== -1) {
             productsInLocalStorage.splice(index, 1);
+            localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
+            alert("Ce produit a bien été supprimé du panier");
+            location.reload();
+        }
+        // 4 - productsInLocalStorage.splice(index, 1)
+    })
+}
+
+function initDeleteListener() {
+    const deleteItems = document.querySelectorAll(".deleteItem");
+    console.log(deleteItems);
+    for (let k = 0; k < deleteItems.length; k++) {
+        suppr(deleteItems[k]);
+    }
+}
+function suppr(deleteItem) {
+    deleteItem.addEventListener("click", (e) => {
+        e.preventDefault();
+        const cartItem = deleteItem.closest('.cart__item');
+        const id = cartItem.dataset.id;
+        const color = cartItem.dataset.color; 
+        // 1 - recup le localstorage
+	    const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
+        // 2 - je cherche l'index de l'element dans mon localstorage (findIndex) => const index = productsInLocalStorage.findIndex()
+	    const index = productsInLocalStorage.findIndex(function (p) {
+            return p._id === id && p.color === color
+        });
+        console.log(index, id, color, cartItem);
+        // 3 - stocker le retour de findIndex, si findIndex different de -1 je splice le localstorage recupéré
+	    if (index !== -1) {
+            productsInLocalStorage.splice(index, 1);
+            localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
             alert("Ce produit a bien été supprimé du panier");
             location.reload();
         }
@@ -81,4 +101,144 @@ function initDeleteListener() {
     }
 }
 
-initDeleteListener();
+function changeQuantity(quantityItem) {
+    quantityItem.addEventListener("change", (e) => {
+        e.preventDefault();
+        const cartItem = quantityItem.closest('.cart__item');
+        const id = cartItem.dataset.id;
+        const color = cartItem.dataset.color; 
+        // 1 - recup le localstorage
+	    const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
+        // 2 - je cherche l'index de l'element dans mon localstorage (findIndex) => const index = productsInLocalStorage.findIndex()
+	    const index = productsInLocalStorage.findIndex(function (p) {
+            return p._id === id && p.color === color
+        });
+        console.log(index, id, color, cartItem);
+        // 3 - stocker le retour de findIndex, si findIndex different de -1 je splice le localstorage recupéré
+	    if (index !== -1) {
+            const quantity = quantityItem.valueAsNumber;
+            if (quantity >= 1) {
+                productsInLocalStorage[index].quantity=quantityItem.valueAsNumber;
+            } else {
+                productsInLocalStorage.splice(index, 1);
+            }
+            localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
+            location.reload();
+        }
+        // 4 - productsInLocalStorage.splice(index, 1)
+    })
+}
+
+function initQuantityListener() {
+    const quantityItems = document.querySelectorAll(".itemQuantity");
+    for (let k = 0; k < quantityItems.length; k++) {
+        changeQuantity(quantityItems[k]);
+    }
+}
+
+async function displayProducts() {
+    let productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
+    let totalPrice = 0;
+    let totalQuantity = 0; 
+    for (const productInLocalStorage of productsInLocalStorage) {
+        const product = await getOneProduct(productInLocalStorage._id);
+        renderProductToHtml(productInLocalStorage, product);
+        totalQuantity += productInLocalStorage.quantity;
+        totalPrice += product.price*productInLocalStorage.quantity;
+    }
+    document.querySelector('#totalQuantity').innerHTML=totalQuantity;
+    document.querySelector('#totalPrice').innerHTML=totalPrice;
+    initDeleteListener();
+    initQuantityListener();
+}
+
+displayProducts();
+
+// fonction prenant en charge le formulaire
+function postForm() {
+  const order = document.getElementById('order');
+  order.addEventListener('click', (event) => {
+    event.preventDefault();
+
+  // recup les données du formulaire
+  const contact = {
+    firstName : document.getElementById('firstName').value,
+    lastName : document.getElementById('lastName').value,
+    address : document.getElementById('address').value,
+    city : document.getElementById('city').value,
+    email : document.getElementById('email').value
+  }
+  
+  // vérification entrées
+
+    // contrôle prénom
+  function controlFirstName() {
+    const validFirstName = contact.firstName;
+    if (/^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,20}$/.test(validFirstName)) {
+      return true;
+    } else {
+      let firstNameErrorMsg = document.getElementById('firstNameErrorMsg');
+      firstNameErrorMsg.innerText = "Merci de vérifier le prénom, 3 caractères minimum";
+    }
+  }
+  
+    // contrôle nom
+  function controlLastName() {
+    const validLastName = contact.lastName;
+    if (/^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,20}$/.test(validLastName)) {
+      return true
+    } else {
+      let lastNameErrorMsg = document.getElementById('lastNameErrorMsg');
+      lastNameErrorMsg.innerText = "Merci de vérifier le nom, 3 caractères minimum, avec des lettres uniquement";
+    }
+  }
+
+    //contrôle adresse
+  function controlAddress() {
+    const validAddress = contact.address;
+    if (/^[a-zA-Z0-9\s,'-]*$/.test(validAddress)) {
+      return true
+    } else {
+      let addressErrorMsg = document.getElementById('addressErrorMsg');
+      addressErrorMsg.innerText = "Merci de vérifier l'adresse, alphanumérique et sans caractères spéciaux"; 
+    }
+  }
+
+    //contrôle ville
+  function controlCity() {
+    const validCity = contact.city;
+    if (/^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,10}$/.test(validCity)) {
+      return true
+    } else {
+      let cityErrorMsg = document.getElementById("cityErrorMsg");
+      cityErrorMsg.innerText = "Merci de vérifier le nom de la ville, 3 caractères minimum, avec des lettres uniquement";
+    }
+  }
+
+    //contrôle email
+  function controlEmail() {
+    const validEmail = contact.email;
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(validEmail)) {
+      return true
+    } else {
+      let emailErrorMsg = document.getElementById("emailErrorMsg");
+      emailErrorMsg.innerText = "Erreur ! Email non valide.";
+    }
+  }
+
+  // envoi objet contact dans le localstorage
+  function validControl() {
+    if (controlFirstName() && controlLastName() && controlAddress() && controlCity() && controlEmail()) {
+      localStorage.setItem('contact', JSON.stringify(contact));
+      alert("Votre commande a bien été enregistrée !")
+      location.reload();
+      return true;
+    } else {
+      alert("Merci de revérifier les informations saisies")
+    }
+  }
+  validControl();
+  })
+}
+
+postForm();

@@ -41,7 +41,6 @@ displayOneProduct();
 function getSelectedProduct () {  
     return {
         _id: urlId,
-        price: document.querySelector('#price').value,
         color: document.querySelector('#colors').value,
         quantity: document.querySelector('#quantity').valueAsNumber
     };
