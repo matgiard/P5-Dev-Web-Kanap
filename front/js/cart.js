@@ -179,6 +179,7 @@ function postForm() {
     } else {
       let firstNameErrorMsg = document.getElementById('firstNameErrorMsg');
       firstNameErrorMsg.innerText = "Merci de vérifier le prénom, 3 caractères minimum";
+      return false
     }
   }
   
@@ -190,6 +191,7 @@ function postForm() {
     } else {
       let lastNameErrorMsg = document.getElementById('lastNameErrorMsg');
       lastNameErrorMsg.innerText = "Merci de vérifier le nom, 3 caractères minimum, avec des lettres uniquement";
+      return false
     }
   }
 
@@ -200,7 +202,8 @@ function postForm() {
       return true
     } else {
       let addressErrorMsg = document.getElementById('addressErrorMsg');
-      addressErrorMsg.innerText = "Merci de vérifier l'adresse, alphanumérique et sans caractères spéciaux"; 
+      addressErrorMsg.innerText = "Merci de vérifier l'adresse, alphanumérique et sans caractères spéciaux";
+      return false 
     }
   }
 
@@ -212,6 +215,7 @@ function postForm() {
     } else {
       let cityErrorMsg = document.getElementById("cityErrorMsg");
       cityErrorMsg.innerText = "Merci de vérifier le nom de la ville, 3 caractères minimum, avec des lettres uniquement";
+      return false
     }
   }
 
@@ -223,20 +227,45 @@ function postForm() {
     } else {
       let emailErrorMsg = document.getElementById("emailErrorMsg");
       emailErrorMsg.innerText = "Erreur ! Email non valide.";
+      return false
     }
   }
 
   // envoi objet contact dans le localstorage
   function validControl() {
-    if (controlFirstName() && controlLastName() && controlAddress() && controlCity() && controlEmail()) {
-      localStorage.setItem('contact', JSON.stringify(contact));
+    let isValidFirstName = controlFirstName();
+    let isValidLastName = controlLastName();
+    let isValidAddress = controlAddress();
+    let isValidCity = controlCity();
+    let isValidEmail = controlEmail();
+    if (isValidFirstName && isValidLastName && isValidAddress && isValidCity && isValidEmail) {
       alert("Votre commande a bien été enregistrée !")
-      location.reload();
-      return true;
-    } else {
-      alert("Merci de revérifier les informations saisies")
+      const products = JSON.parse(localStorage.getItem('products')).map(p => p._id);
+      const body = {
+        contact,
+        products,
+      };
+
+      const postOrder = {
+          method: 'POST',
+          body: JSON.stringify(body),
+          headers: {
+              "Content-Type": "application/json" 
+          },
+      };
+      fetch("http://localhost:3000/api/products/order", postOrder)
+      .then((response) => response.json())
+      .then((data) => {
+          localStorage.clear();
+          window.location.href = 'confirmation.html?orderId='+data.orderId;
+      })
+      .catch((err) => {
+          alert ("Erreyr: " + err.message);
+      });
+      } else {
+        alert("Merci de revérifier les informations saisies")
+      }
     }
-  }
   validControl();
   })
 }

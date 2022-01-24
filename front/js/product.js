@@ -32,7 +32,11 @@ function convertProductToHtml(product) {
 
 async function displayOneProduct() {
     const product = await getOneProduct();
-    convertProductToHtml(product);   
+    if (Object.keys(product).length !== 0) {
+        convertProductToHtml(product);
+    } else {
+        document.querySelector('.item').innerHTML = 'Malheuresement notre site rencontre une erreur. Veuillez réessayer ultérieurement.';
+    }      
 }
 
 
@@ -82,3 +86,4 @@ function checkLocalStorage (productToCheck) {
 }
 
 addToCart();
+
