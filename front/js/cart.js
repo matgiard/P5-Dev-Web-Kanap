@@ -1,9 +1,3 @@
-// 1 - récuperer le panier via localStorage
-// 2 - récuperer tous les produits pour savoir quoi insérer ?
-// 3 - coupler les 2 pour la description et l'img
-// 4 - associer 2 et 3
-// 5 - display le tout
-
 async function getOneProduct(productId) {
     // Call vers mon serveur 
     return fetch(`http://localhost:3000/api/products/${productId}`)
@@ -40,7 +34,6 @@ function renderProductToHtml(productInLocalStorage, product) {
 function suppr(deleteItem) {
     deleteItem.addEventListener("click", (e) => {
         e.preventDefault();
-        alert('bla bla bla');
         const cartItem = deleteItem.closest('.cart__item');
         const id = cartItem.dataset.id;
         const color = cartItem.dataset.color; 
@@ -63,77 +56,42 @@ function suppr(deleteItem) {
 }
 
 function initDeleteListener() {
-    const deleteItems = document.querySelectorAll(".deleteItem");
-    console.log(deleteItems);
-    for (let k = 0; k < deleteItems.length; k++) {
-        suppr(deleteItems[k]);
-    }
-}
-function suppr(deleteItem) {
-    deleteItem.addEventListener("click", (e) => {
-        e.preventDefault();
-        const cartItem = deleteItem.closest('.cart__item');
-        const id = cartItem.dataset.id;
-        const color = cartItem.dataset.color; 
-        // 1 - recup le localstorage
-	    const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
-        // 2 - je cherche l'index de l'element dans mon localstorage (findIndex) => const index = productsInLocalStorage.findIndex()
-	    const index = productsInLocalStorage.findIndex(function (p) {
-            return p._id === id && p.color === color
-        });
-        console.log(index, id, color, cartItem);
-        // 3 - stocker le retour de findIndex, si findIndex different de -1 je splice le localstorage recupéré
-	    if (index !== -1) {
-            productsInLocalStorage.splice(index, 1);
-            localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
-            alert("Ce produit a bien été supprimé du panier");
-            location.reload();
-        }
-        // 4 - productsInLocalStorage.splice(index, 1)
-    })
-}
-
-function initDeleteListener() {
-    const deleteItems = document.querySelectorAll(".deleteItem");
-    console.log(deleteItems);
-    for (let k = 0; k < deleteItems.length; k++) {
-        suppr(deleteItems[k]);
-    }
+  const deleteItems = document.querySelectorAll(".deleteItem");
+  console.log(deleteItems);
+  for (let k = 0; k < deleteItems.length; k++) {
+    suppr(deleteItems[k]);
+  }
 }
 
 function changeQuantity(quantityItem) {
     quantityItem.addEventListener("change", (e) => {
-        e.preventDefault();
-        const cartItem = quantityItem.closest('.cart__item');
-        const id = cartItem.dataset.id;
-        const color = cartItem.dataset.color; 
-        // 1 - recup le localstorage
-	    const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
-        // 2 - je cherche l'index de l'element dans mon localstorage (findIndex) => const index = productsInLocalStorage.findIndex()
-	    const index = productsInLocalStorage.findIndex(function (p) {
-            return p._id === id && p.color === color
-        });
-        console.log(index, id, color, cartItem);
-        // 3 - stocker le retour de findIndex, si findIndex different de -1 je splice le localstorage recupéré
-	    if (index !== -1) {
-            const quantity = quantityItem.valueAsNumber;
-            if (quantity >= 1) {
-                productsInLocalStorage[index].quantity=quantityItem.valueAsNumber;
-            } else {
-                productsInLocalStorage.splice(index, 1);
+      e.preventDefault();
+      const cartItem = quantityItem.closest('.cart__item');
+      const id = cartItem.dataset.id;
+      const color = cartItem.dataset.color;
+      const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
+      const index = productsInLocalStorage.findIndex(function (p) {
+        return p._id === id && p.color === color
+      });
+      console.log(index, id, color, cartItem);
+      if (index !== -1) {
+        const quantity = quantityItem.valueAsNumber;
+          if (quantity >= 1) {
+            productsInLocalStorage[index].quantity=quantityItem.valueAsNumber;
+          } else {
+              productsInLocalStorage.splice(index, 1);
             }
-            localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
-            location.reload();
-        }
-        // 4 - productsInLocalStorage.splice(index, 1)
+        localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
+        location.reload();
+      }
     })
 }
 
 function initQuantityListener() {
-    const quantityItems = document.querySelectorAll(".itemQuantity");
-    for (let k = 0; k < quantityItems.length; k++) {
-        changeQuantity(quantityItems[k]);
-    }
+  const quantityItems = document.querySelectorAll(".itemQuantity");
+  for (let k = 0; k < quantityItems.length; k++) {
+      changeQuantity(quantityItems[k]);
+  }
 }
 
 async function displayProducts() {
@@ -175,6 +133,7 @@ function postForm() {
   function controlFirstName() {
     const validFirstName = contact.firstName;
     if (/^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,20}$/.test(validFirstName)) {
+      firstNameErrorMsg.innerText = "";
       return true;
     } else {
       let firstNameErrorMsg = document.getElementById('firstNameErrorMsg');
@@ -187,6 +146,7 @@ function postForm() {
   function controlLastName() {
     const validLastName = contact.lastName;
     if (/^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,20}$/.test(validLastName)) {
+      lastNameErrorMsg.innerText = "";
       return true
     } else {
       let lastNameErrorMsg = document.getElementById('lastNameErrorMsg');
@@ -199,6 +159,7 @@ function postForm() {
   function controlAddress() {
     const validAddress = contact.address;
     if (/^[a-zA-Z0-9\s,'-]*$/.test(validAddress)) {
+      addressErrorMsg.innerText = "";
       return true
     } else {
       let addressErrorMsg = document.getElementById('addressErrorMsg');
@@ -211,6 +172,7 @@ function postForm() {
   function controlCity() {
     const validCity = contact.city;
     if (/^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,10}$/.test(validCity)) {
+      cityErrorMsg.innerText = "";
       return true
     } else {
       let cityErrorMsg = document.getElementById("cityErrorMsg");
@@ -223,6 +185,7 @@ function postForm() {
   function controlEmail() {
     const validEmail = contact.email;
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(validEmail)) {
+      emailErrorMsg.innerText = "";
       return true
     } else {
       let emailErrorMsg = document.getElementById("emailErrorMsg");
@@ -231,7 +194,6 @@ function postForm() {
     }
   }
 
-  // envoi objet contact dans le localstorage
   function validControl() {
     let isValidFirstName = controlFirstName();
     let isValidLastName = controlLastName();
@@ -260,7 +222,7 @@ function postForm() {
           window.location.href = 'confirmation.html?orderId='+data.orderId;
       })
       .catch((err) => {
-          alert ("Erreyr: " + err.message);
+          alert ("Erreur: " + err.message);
       });
       } else {
         alert("Merci de revérifier les informations saisies")
