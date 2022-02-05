@@ -1,14 +1,16 @@
+// Stockage de l'ID du produit depuis l'url.
 const params = new URLSearchParams(window.location.search);
 const urlId = params.get("id");
 
+// Appel vers l'API pour récuperer un produits grâce à l'ID.
 async function getOneProduct() {
-    // Call vers mon serveur 
     return fetch(`http://localhost:3000/api/products/${urlId}`)
         .then(function (response) { return response.json(); })
         .then(function (product) { return product; })
         .catch(function (error) { document.querySelector('.item').innerHTML = 'Malheuresement notre site rencontre une erreur. Veuillez réessayer ultérieurement.'; });
 }
 
+// Injecte les détails produit dans le DOM depuis l'API.
 function convertProductToHtml(product) {
     document.querySelector('title').innerHTML=`${product.name}`;
     document.querySelector('.item__img').innerHTML=`<img src="${product.imageUrl}" alt="${product.altTxt}">`;
@@ -20,6 +22,7 @@ function convertProductToHtml(product) {
     }
 }
 
+// Affichage de l'unique produit.
 async function displayOneProduct() {
     const product = await getOneProduct();
     if (Object.keys(product).length !== 0) {
@@ -32,6 +35,7 @@ async function displayOneProduct() {
 
 displayOneProduct();
 
+// Enregistre les choix de l'utilisateur.
 function getSelectedProduct () {  
     return {
         _id: urlId,
@@ -40,6 +44,7 @@ function getSelectedProduct () {
     };
 }
 
+// Ajoute le produit au panier.
 function addToCart () {
     const addToCartBtn = document.getElementById('addToCart');
     addToCartBtn.addEventListener('click', (e) => {
@@ -55,20 +60,16 @@ function addToCart () {
     });
 }
 
+// Ajoute le produit et les caractéristiques choisis par l'utilisateur au Local Storage.
 function checkLocalStorage (productToCheck) {
     console.log(localStorage.getItem('products'));
     const productsInLocalStorage = JSON.parse(localStorage.getItem('products')) || [];
-    // 1 - findIndex: productsInLocalStorage.findIndex(p => p._id === productToCheck._id && p.color === productToCheck.color)
     const index = productsInLocalStorage.findIndex(function (p) {
         return p._id === productToCheck._id && p.color === productToCheck.color
     });
-    // 2 - stocker le retour de findIndex
-    
-    // 3 - si index = -1 j'ajoute productToCheck dans productsInLocalStorage
     if (index === -1) {
         productsInLocalStorage.push(productToCheck);
     }
-    // 4 - sinon on fais productInLocalStorage[index].quantity+=productToCheck.quantity
     else {
         productsInLocalStorage[index].quantity+=productToCheck.quantity;
     }

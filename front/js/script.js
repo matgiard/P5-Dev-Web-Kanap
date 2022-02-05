@@ -1,16 +1,12 @@
-// 1 - Récupérer la liste de produits
-// 2 - Adapter le rendu
-// 3 - Afficher le rendu
-
+// Appel vers l'API qui contient les produits.
 async function getAllProducts() {
-    // Call vers mon serveur 
     return fetch('http://localhost:3000/api/products')
         .then(function (response) { return response.json(); })
         .then(function (products) { return products; })
         .catch(function (error) { document.querySelector('#items').innerHTML = 'Malheuresement notre site rencontre une erreur. Veuillez réessayer ultérieurement.'; });
 }
 
-
+// Injecte les détails produit dans le DOM depuis l'API.
 function convertProductToHtml(product) {
     document.querySelector('#items').innerHTML += `
         <a href="./product.html?id=${product._id}">
@@ -22,7 +18,7 @@ function convertProductToHtml(product) {
         </a>`;
 }
 
-
+// Affichage de tous les produits.
 async function displayAllProducts() {
     const products = await getAllProducts();
     for(const product of products) {

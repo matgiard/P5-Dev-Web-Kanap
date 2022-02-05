@@ -1,60 +1,59 @@
+// Appel pour récupérer tous les détails d’un seul produit grâce à son identifiant situé dans le local storage. 
 async function getOneProduct(productId) {
-    // Call vers mon serveur 
-    return fetch(`http://localhost:3000/api/products/${productId}`)
-        .then(function (response) { return response.json(); })
-        .then(function (product) { return product; })
-        .catch(function (error) { alert ('Malheuresement notre site rencontre une erreur. Veuillez réessayer ultérieurement.'); });
+  return fetch(`http://localhost:3000/api/products/${productId}`)
+    .then(function (response) { return response.json(); })
+    .then(function (product) { return product; })
+    .catch(function (error) { alert ('Malheuresement notre site rencontre une erreur. Veuillez réessayer ultérieurement.'); });
 }
 
+// Injecte les détails produit dans le DOM depuis l'API et le Local Storage.
 function renderProductToHtml(productInLocalStorage, product) {
-    document.querySelector('#cart__items').innerHTML += `
-        <article class="cart__item" data-id="${productInLocalStorage._id}" data-color="${productInLocalStorage.color}">
-            <div class="cart__item__img">
-                <img src="${product.imageUrl}" alt="${product.altTxt}>
-            </div>
-            <div class="cart__item__content">
-                <div class="cart__item__content__description">
-                    <h2>${product.name}</h2>
-                    <p>${productInLocalStorage.color}</p>
-                    <p>${product.price}€</p>
-                </div>
-                <div class="cart__item__content__settings">
-                    <div class="cart__item__content__settings__quantity">
-                        <p>Qté : ${productInLocalStorage.quantity}</p>
-                        <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${productInLocalStorage.quantity}">
-                    </div>
-                    <div class="cart__item__content__settings__delete">
-                        <p class="deleteItem">Supprimer</p>
-                    </div>
-                </div>
-            </div>
-        </article>;`
+  document.querySelector('#cart__items').innerHTML += `
+    <article class="cart__item" data-id="${productInLocalStorage._id}" data-color="${productInLocalStorage.color}">
+      <div class="cart__item__img">
+        <img src="${product.imageUrl}" alt="${product.altTxt}>
+      </div>
+      <div class="cart__item__content">
+        <div class="cart__item__content__description">
+            <h2>${product.name}</h2>
+            <p>${productInLocalStorage.color}</p>
+            <p>${product.price}€</p>
+        </div>
+        <div class="cart__item__content__settings">
+          <div class="cart__item__content__settings__quantity">
+            <p>Qté : ${productInLocalStorage.quantity}</p>
+              <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${productInLocalStorage.quantity}">
+          </div>
+          <div class="cart__item__content__settings__delete">
+            <p class="deleteItem">Supprimer</p>
+          </div>
+        </div>
+      </div>
+    </article>;`
 }
 
+// Au click, suppression d'un produit de la page et du Local Storage.
 function suppr(deleteItem) {
-    deleteItem.addEventListener("click", (e) => {
-        e.preventDefault();
-        const cartItem = deleteItem.closest('.cart__item');
-        const id = cartItem.dataset.id;
-        const color = cartItem.dataset.color; 
-        // 1 - recup le localstorage
-	    const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
-        // 2 - je cherche l'index de l'element dans mon localstorage (findIndex) => const index = productsInLocalStorage.findIndex()
-	    const index = productsInLocalStorage.findIndex(function (p) {
-            return p._id === id && p.color === color
-        });
-        console.log(index, id, color, cartItem);
-        // 3 - stocker le retour de findIndex, si findIndex different de -1 je splice le localstorage recupéré
-	    if (index !== -1) {
-            productsInLocalStorage.splice(index, 1);
-            localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
-            alert("Ce produit a bien été supprimé du panier");
-            location.reload();
-        }
-        // 4 - productsInLocalStorage.splice(index, 1)
-    })
+  deleteItem.addEventListener("click", (e) => {
+    e.preventDefault();
+    const cartItem = deleteItem.closest('.cart__item');
+    const id = cartItem.dataset.id;
+    const color = cartItem.dataset.color;
+	  const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
+	  const index = productsInLocalStorage.findIndex(function (p) {
+      return p._id === id && p.color === color
+  });
+  console.log(index, id, color, cartItem);
+	if (index !== -1) {
+    productsInLocalStorage.splice(index, 1);
+    localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
+    alert("Ce produit a bien été supprimé du panier");
+    location.reload();
+  }
+  })
 }
 
+// Boucle qui appelle la fonction “suppr” pour la répéter autant de fois que necessaire.
 function initDeleteListener() {
   const deleteItems = document.querySelectorAll(".deleteItem");
   console.log(deleteItems);
@@ -63,30 +62,32 @@ function initDeleteListener() {
   }
 }
 
+// Au click sur l’input pour changer la quantité la fonction change la valeur dans l’HTML et dans le Local Storage.
 function changeQuantity(quantityItem) {
-    quantityItem.addEventListener("change", (e) => {
-      e.preventDefault();
-      const cartItem = quantityItem.closest('.cart__item');
-      const id = cartItem.dataset.id;
-      const color = cartItem.dataset.color;
-      const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
-      const index = productsInLocalStorage.findIndex(function (p) {
-        return p._id === id && p.color === color
-      });
-      console.log(index, id, color, cartItem);
-      if (index !== -1) {
-        const quantity = quantityItem.valueAsNumber;
-          if (quantity >= 1) {
-            productsInLocalStorage[index].quantity=quantityItem.valueAsNumber;
-          } else {
-              productsInLocalStorage.splice(index, 1);
-            }
-        localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
-        location.reload();
-      }
-    })
+  quantityItem.addEventListener("change", (e) => {
+    e.preventDefault();
+    const cartItem = quantityItem.closest('.cart__item');
+    const id = cartItem.dataset.id;
+    const color = cartItem.dataset.color;
+    const productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
+    const index = productsInLocalStorage.findIndex(function (p) {
+      return p._id === id && p.color === color
+    });
+    console.log(index, id, color, cartItem);
+    if (index !== -1) {
+      const quantity = quantityItem.valueAsNumber;
+      if (quantity >= 1) {
+        productsInLocalStorage[index].quantity=quantityItem.valueAsNumber;
+        } else {
+          productsInLocalStorage.splice(index, 1);
+        }
+      localStorage.setItem('products', JSON.stringify(productsInLocalStorage));
+      location.reload();
+    }
+  })
 }
 
+// Boucle qui appelle la fonction “changeQuantity” pour la répéter autant de fois que necessaire.
 function initQuantityListener() {
   const quantityItems = document.querySelectorAll(".itemQuantity");
   for (let k = 0; k < quantityItems.length; k++) {
@@ -94,31 +95,32 @@ function initQuantityListener() {
   }
 }
 
+// Affiche tous les produits du panier et effectue les opérations de quantité et prix total.
 async function displayProducts() {
-    let productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
-    let totalPrice = 0;
-    let totalQuantity = 0; 
-    for (const productInLocalStorage of productsInLocalStorage) {
-        const product = await getOneProduct(productInLocalStorage._id);
-        renderProductToHtml(productInLocalStorage, product);
-        totalQuantity += productInLocalStorage.quantity;
-        totalPrice += product.price*productInLocalStorage.quantity;
-    }
-    document.querySelector('#totalQuantity').innerHTML=totalQuantity;
-    document.querySelector('#totalPrice').innerHTML=totalPrice;
-    initDeleteListener();
-    initQuantityListener();
+  let productsInLocalStorage = JSON.parse(localStorage.getItem('products'));
+  let totalPrice = 0;
+  let totalQuantity = 0; 
+  for (const productInLocalStorage of productsInLocalStorage) {
+    const product = await getOneProduct(productInLocalStorage._id);
+    renderProductToHtml(productInLocalStorage, product);
+    totalQuantity += productInLocalStorage.quantity;
+    totalPrice += product.price*productInLocalStorage.quantity;
+  }
+  document.querySelector('#totalQuantity').innerHTML=totalQuantity;
+  document.querySelector('#totalPrice').innerHTML=totalPrice;
+  initDeleteListener();
+  initQuantityListener();
 }
 
 displayProducts();
 
-// fonction prenant en charge le formulaire
+// Fonction prenant en charge le formulaire.
 function postForm() {
   const order = document.getElementById('order');
   order.addEventListener('click', (event) => {
     event.preventDefault();
 
-  // recup les données du formulaire
+  // Récupère les données du formulaire.
   const contact = {
     firstName : document.getElementById('firstName').value,
     lastName : document.getElementById('lastName').value,
@@ -127,9 +129,9 @@ function postForm() {
     email : document.getElementById('email').value
   }
   
-  // vérification entrées
+  // Vérification entrées.
 
-    // contrôle prénom
+    // Contrôle prénom.
   function controlFirstName() {
     const validFirstName = contact.firstName;
     if (/^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,20}$/.test(validFirstName)) {
@@ -142,7 +144,7 @@ function postForm() {
     }
   }
   
-    // contrôle nom
+    // Contrôle nom.
   function controlLastName() {
     const validLastName = contact.lastName;
     if (/^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,20}$/.test(validLastName)) {
@@ -155,7 +157,7 @@ function postForm() {
     }
   }
 
-    //contrôle adresse
+    // Contrôle adresse.
   function controlAddress() {
     const validAddress = contact.address;
     if (/^[a-zA-Z0-9\s,'-]*$/.test(validAddress)) {
@@ -168,7 +170,7 @@ function postForm() {
     }
   }
 
-    //contrôle ville
+    // Contrôle ville.
   function controlCity() {
     const validCity = contact.city;
     if (/^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{3,10}$/.test(validCity)) {
@@ -181,7 +183,7 @@ function postForm() {
     }
   }
 
-    //contrôle email
+    // Contrôle email.
   function controlEmail() {
     const validEmail = contact.email;
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(validEmail)) {
@@ -194,6 +196,7 @@ function postForm() {
     }
   }
 
+  // Valide les entrées du formulaire, enregistre la commande sur le serveur.
   function validControl() {
     let isValidFirstName = controlFirstName();
     let isValidLastName = controlLastName();
